@@ -106,3 +106,8 @@ dist
 # Rust
 target
 2022/day6/cargoProject/target
+
+.idea
+
+2020/data.txt
+2022/data.txt
