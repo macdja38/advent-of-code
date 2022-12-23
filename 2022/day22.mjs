@@ -18,11 +18,9 @@ let example =
 
 10R5L5R10L4R5L5`
 
-// data = example;
+data = example;
 
 let [rawMap, rawPath] = data.split("\n\n");
-
-console.log(rawMap, rawPath);
 
 let tilesP1 = {}
 
@@ -32,8 +30,11 @@ let height = 0;
 let startingTile = {};
 let startingTileCol = Number.MAX_SAFE_INTEGER;
 
+let surfaceArea = 0;
+
 rawMap.split("\n").map((row, rowIndex) => row.split("").forEach((tile, colIndex) => {
     if (tile !== " ") {
+        surfaceArea += 1;
         if ((colIndex + 1) > width) {
             width = colIndex + 1;
         }
@@ -54,7 +55,7 @@ rawMap.split("\n").map((row, rowIndex) => row.split("").forEach((tile, colIndex)
     }
 }));
 
-console.log(tilesP1)
+let sideLength = Math.sqrt(surfaceArea / 6);
 
 const tilesP2 = JSON.parse(JSON.stringify(tilesP1));
 
@@ -95,7 +96,6 @@ function key(row, col) {
 }
 
 for (let step of steps) {
-    console.log(step);
     if (step === "R") {
         direction = (direction + 1) % 4;
     } else if (step === "L") {
@@ -117,8 +117,8 @@ for (let step of steps) {
     // console.log(direction, tile);
 }
 
+console.log("Part 1")
 console.log(tile.row, tile.col, direction);
-
 console.log((tile.row + 1) * 1000 + (tile.col + 1) * 4 + direction);
 // 137 73 2
 // incorrect 114138298
@@ -150,9 +150,6 @@ function drawMap() {
     console.log(map.map(line => line.join("")).join("\n"))
 }
 
-drawMap();
-
-
 // part 2
 
 
@@ -163,85 +160,90 @@ drawMap();
 //     [-1, 0]
 // ]
 
+function rotateRight(currentDirectionIndex=0, rotateBy=0) {
+    return (currentDirectionIndex + rotateBy + 4) % 4
+}
+
+// normal stitching for tiles that are directly against each other without folding
 for (let tile of Object.values(tilesP2)) {
     for (let [directionIndex, direction] of Object.entries(directions)) {
-        let tileRow = tile.row;
-        let tileCol = tile.col;
-        while (true) {
-            tileRow = tileRow + direction[0];
-            tileCol = tileCol + direction[1];
-            let rotateBy = 0;
-            if (tileRow === -1) {
-                if (tileCol <= 99) {
-                    tileRow = tileCol + 100;
-                    tileCol = 0;
-                    rotateBy = 1;
-                } else {
-                    tileCol = tileCol - 100
-                    tileRow = 199
-                    rotateBy = 0;
-                }
-            } else if (tileCol === 150) {
-                tileRow = 149 - tileRow;
-                tileCol = 99;
-                rotateBy = rotateBy = 2;
-            } else if (tileCol > 99 && tileRow === 50 && directionIndex === '1') {
-                tileRow = tileCol - 50;
-                tileCol = 99;
-                rotateBy = 1;
-            } else if (tileCol === 100 && tileRow > 49 && tileRow < 100 && directionIndex === `0`) {
-                tileCol = tileRow + 50
-                tileRow = 49;
-                rotateBy = 3;
-            } else if (tileCol === 100 && tileRow > 99 && tileRow < 150) {
-                tileRow = 149 - tileRow
-                tileCol = 149;
-                rotateBy = 2;
-            } else if (tileRow === 150 && tileCol > 49 && directionIndex === '1') {
-                tileRow = 100 + tileCol;
-                tileCol = 49;
-                rotateBy = 1;
-            } else if (tileCol === 50 && tileRow > 149 && directionIndex === '0') {
-                tileCol = tileRow - 100;
-                tileRow = 149;
-                rotateBy = 3;
-            } else if (tileRow > 199) {
-                tileCol = tileCol + 100;
-                tileRow = 0;
-                rotateBy = 0;
-            } else if (tileCol === -1 && tileRow > 149) {
-                tileCol = tileRow - 100
-                tileRow = 0;
-                rotateBy = 3;
-            } else if (tileCol === -1 && tileRow > 99) {
-                tileRow = 149 - tileRow
-                tileCol = 50;
-                rotateBy = 2
-            } else if (tileRow === 99 && tileCol < 50 && directionIndex === '3') {
-                tileRow = tileCol + 50;
-                tileCol = 50;
-                rotateBy = 1
-            } else if (tileCol === 49 && tileRow > 49 && tileRow < 100 && directionIndex === '2') {
-                tileCol = tileRow - 50;
-                tileRow = 100;
-                rotateBy = 3
-            } else if (tileCol === 49 && tileRow < 50) {
-                tileRow = 149 - tileRow;
-                tileCol = 0;
-                rotateBy = 2;
+        let rotateBy = 0;
+
+        let tileRow = tile.row + direction[0];
+        let tileCol = tile.col + direction[1];
+
+        let tileAtSpot = tilesP2[key(tileRow, tileCol)];
+        if (tileAtSpot) {
+            tile.directions[directionIndex] = {tileAtSpot, rotateBy};
+        }
+    }
+}
+
+// Given that a cube only has 12 edges we shouldn't need more than 12 iterations of trying to fold
+// lets do 16 to be safe
+for (let i = 0; i < 16; i++) {
+    for (let tile of Object.values(tilesP2)) {
+        for (let [directionIndex] of Object.entries(directions)) {
+            // search for this shape
+            // ..
+            // .
+            // in any orientation. If we find it we can fold those two sides together.
+
+            let directionIndexNum = parseInt(directionIndex, 10);
+            let directionIndexNumRotatedRight = rotateRight(directionIndexNum, 1);
+
+            let tile1 = tile.directions[directionIndexNum]
+            let tile2 = tile.directions[directionIndexNumRotatedRight];
+
+            if (!tile1 || !tile2) {
+                // this certainly isn't a corner, we can't start folding from here.
+                continue;
             }
-            let tileAtSpot = tilesP2[`${tileRow}:${tileCol}`];
-            if (tileAtSpot) {
-                tile.directions[directionIndex] = {tileAtSpot, rotateBy};
-                break;
-            } else {
-                throw new Error();
+
+            let tile1dirAfterTransition = rotateRight(directionIndexNum, tile1.rotateBy);
+            let tile2dirAfterTransition = rotateRight(directionIndexNumRotatedRight, tile2.rotateBy);
+
+            let tile1ToEmptySpace = rotateRight(tile1dirAfterTransition, 1);
+            let tile2ToEmptySpace = rotateRight(tile2dirAfterTransition, 3);
+
+            // now that we've verified the three cube tiles we need to verify the empty space.
+
+            const empty1 = tile1.tileAtSpot.directions[tile1ToEmptySpace];
+            const empty2 = tile2.tileAtSpot.directions[tile2ToEmptySpace];
+
+            if (empty1 !== undefined || empty2 !== undefined) {
+                // no empty space means this isn't a corner
+                continue;
+            }
+
+            console.log("Stitching from ", tile, directionIndex);
+            // we've located a corner. The first edge is in directionIndexNum, the second is in directionIndexNumRotatedRight.
+
+            let dir1Tile = tile1.tileAtSpot;
+            let dir2Tile = tile2.tileAtSpot;
+
+            // when moving over an edge we need to change our rotation direction so that we're heading away from the edge
+            // this essentially calculates the way back, then rotates 180 degrees.
+            // +4 is added so that we'll always have a positive number.
+            let rotateBy1 = (tile2ToEmptySpace - tile1ToEmptySpace - 2 + 4) % 4;
+            let rotateBy2 = (tile1ToEmptySpace - tile2ToEmptySpace - 2 + 4) % 4;
+
+            // iterate down the edges, linking them to each other
+            for (let i = 0; i < sideLength; i++) {
+                if (i !== 0) {
+                    dir1Tile = dir1Tile.directions[tile1dirAfterTransition].tileAtSpot;
+                    dir2Tile = dir2Tile.directions[tile2dirAfterTransition].tileAtSpot
+                }
+
+
+                dir1Tile.directions[tile1ToEmptySpace] = {tileAtSpot: dir2Tile, rotateBy: rotateBy1 };
+                dir2Tile.directions[tile2ToEmptySpace] = {tileAtSpot: dir1Tile, rotateBy: rotateBy2 };
             }
         }
     }
 }
 
-// verify everything is reversable
+// each pair of tiles can be traversed in both directions .
 for (let tile of Object.values(tilesP2)) {
     for (let [directionIndex] of Object.entries(directions)) {
         const to = tile.directions[directionIndex];
@@ -249,7 +251,8 @@ for (let tile of Object.values(tilesP2)) {
         const reverseDirection = (directionIndexNum + to.rotateBy + 2) % 4;
         const from = to.tileAtSpot.directions[reverseDirection].tileAtSpot;
         if (from !== tile) {
-            console.log(tile, directionIndex, to, from);
+            console.error("ERROR ==== ERROR ==== ERROR");
+            console.error(tile, directionIndex, to, from);
         }
     }
 }
@@ -260,7 +263,6 @@ tile = tilesP2[key(startingTile.row, startingTile.col)];
 lastFacingOnTile = {};
 
 for (let step of steps) {
-    console.log(step);
     if (step === "R") {
         direction = (direction + 1) % 4;
     } else if (step === "L") {
@@ -279,11 +281,8 @@ for (let step of steps) {
         }
     }
     lastFacingOnTile[key(tile.row, tile.col)] = direction;
-
-    // console.log(direction, tile);
 }
 
-
+console.log("Part 2");
 console.log(tile.row, tile.col, direction);
-
 console.log((tile.row + 1) * 1000 + (tile.col + 1) * 4 + direction);
