@@ -39,6 +39,9 @@ build/Release
 
 # Dependency directories
 node_modules/
+2020/node_modules/
+2022/node_modules/
+2023/node_modules/
 jspm_packages/
 
 # TypeScript v1 declaration files
