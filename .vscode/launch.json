@@ -7,6 +7,26 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Day 20 Part 2",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/2022/day20_part2.mjs",
+            
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Day 20",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/2022/day20.mjs",
+            
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Day 11",
             "skipFiles": [
                 "<node_internals>/**"
