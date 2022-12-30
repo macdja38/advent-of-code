@@ -39,10 +39,12 @@ build/Release
 
 # Dependency directories
 node_modules/
-2020/node_modules/
-2022/node_modules/
-2023/node_modules/
+**/node_modules/
+**/**/node_modules/
 jspm_packages/
+
+# Advent of code data files
+**/data.txt
 
 # TypeScript v1 declaration files
 typings/
@@ -111,6 +113,3 @@ target
 2022/day6/cargoProject/target
 
 .idea
-
-2020/data.txt
-2022/data.txt
