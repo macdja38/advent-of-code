@@ -10,7 +10,7 @@ let example = `1
 0
 4`;
 
-data = example;
+// data = example;
 
 let decryptionKey = 811589153
 
@@ -39,8 +39,6 @@ for (let number of numbers) {
 previousLinkedListValue.next = linkedListStart;
 linkedListStart.prev = previousLinkedListValue;
 
-print();
-
 let zeroPointer;
 let arrayOfOriginalOrderNodes = new Array(numbers.length);
 
@@ -57,37 +55,38 @@ let arrayOfOriginalOrderNodes = new Array(numbers.length);
     }
 }
 
-print();
+validate();
 
 const lengthOfNumbers = numbers.length;
 
-for (let node of arrayOfOriginalOrderNodes) {
-    // console.log(node);
-    let direction = node.value > 0 ? "next" : "prev";
-    let abs = Math.abs(node.value);
+for (let i = 0; i < 10; i++) {
+    for (let node of arrayOfOriginalOrderNodes) {
+        // console.log(node);
+        let direction = node.value > 0 ? "next" : "prev";
+        let abs = Math.abs(node.value);
 
-    // remove this node from the linked list
-    let next = node.next;
-    let prev = node.prev;
-    prev.next = next;
-    next.prev = prev;
+        // remove this node from the linked list
+        let next = node.next;
+        let prev = node.prev;
+        prev.next = next;
+        next.prev = prev;
 
-    let pointer = node;
-    let moveBy = (direction === "next" ? abs : abs + 1) % lengthOfNumbers;
-    for (let i = 0; moveBy; i++) {
-        // console.log("Moving", abs, direction);
-        pointer = pointer[direction];
+        let pointer = node.prev;
+        let moveBy = (direction === "next" ? abs : abs) % (lengthOfNumbers - 1);
+        for (let i = 0; i < moveBy; i++) {
+            pointer = pointer[direction];
+        }
+
+        // insert the new node
+        next = pointer.next;
+        prev = pointer;
+
+        prev.next = node;
+        next.prev = node;
+
+        node.prev = prev;
+        node.next = next;
     }
-
-    next = pointer.next;
-    prev = pointer;
-
-    prev.next = node;
-    next.prev = node;
-
-    node.prev = prev;
-    node.next = next;
-    print();
 }
 
 
@@ -111,25 +110,54 @@ function print() {
     console.log(str.join(", "));
 }
 
-print();
-
 {
     let pointer = zeroPointer;
     let oneThousand;
     let twoThousand;
     let threeThousand;
-    for (let i = 1; i <= 3000; i++) {
+    for (let i = 1; i <= 3001; i++) {
         pointer = pointer.next;
-        if (i === 1000) {
+        if (i === (1000)) {
             oneThousand = pointer;
         }
-        if (i === 2000) {
+        if (i === (2000)) {
             twoThousand = pointer;
         }
-        if (i === 3000) {
+        if (i === (3000)) {
             threeThousand = pointer;
         }
     }
 
+    console.log(oneThousand.value, twoThousand.value, threeThousand.value);
     console.log(oneThousand.value + twoThousand.value + threeThousand.value);
 }
+
+function validate() {
+    let set = new Set();
+    let pointer = linkedListStart;
+    let i = 1;
+    while(true) {
+        pointer = pointer.next;
+        if (pointer === linkedListStart) {
+            break;
+        }
+        i = i + 1
+        set.add(pointer);
+    }
+    set = new Set();
+    pointer = linkedListStart;
+    i = 1;
+    while(true) {
+        pointer = pointer.prev;
+        if (pointer === linkedListStart) {
+            break;
+        }
+        i = i + 1
+    }
+    console.log(i);
+}
+
+validate();
+
+// too high 23799851911725
+// too low   9890025418458
